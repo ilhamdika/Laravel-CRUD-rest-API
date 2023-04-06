@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\DataDiri;
 use App\Helpers\ApiFormater;
+use Exception;
+
 
 class DataDiriController extends Controller
 {
@@ -43,7 +45,29 @@ class DataDiriController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        try {
+            $request->validate([
+                'username' => 'required',
+                'nama' => 'required',
+                'adress' => 'required',
+            ]);
+
+            $dataDiri = DataDiri::create([
+                'username' => $request->username,
+                'nama' => $request->nama,
+                'adress' => $request->adress,
+            ]);
+
+            $data = DataDiri::find($dataDiri->id);
+
+            if ($data) {
+                return ApiFormater::createApi($data, 'Data Berhasil Disimpan', 200);
+            } else {
+                return ApiFormater::createApi(404, 'Data Tidak Ditemukan', null);
+            }
+        } catch (Exception $e) {
+            return ApiFormater::createApi($e->getMessage(), 'Gagal Menyimpan Data', 500);
+        }
     }
 
     /**
@@ -54,7 +78,13 @@ class DataDiriController extends Controller
      */
     public function show($id)
     {
-        //
+        $data = DataDiri::where('id', '=', $id)->get();
+
+        if ($data) {
+            return ApiFormater::createApi($data, 'Data Berhasil Disimpan', 200);
+        } else {
+            return ApiFormater::createApi(404, 'Data Tidak Ditemukan', null);
+        }
     }
 
     /**
@@ -77,7 +107,31 @@ class DataDiriController extends Controller
      */
     public function update(Request $request, $id)
     {
-        //
+        try {
+            $request->validate([
+                'username' => 'required',
+                'nama' => 'required',
+                'adress' => 'required',
+            ]);
+
+            $dataDiri = DataDiri::findOrFail($id);
+
+            $dataDiri->update([
+                'username' => $request->username,
+                'nama' => $request->nama,
+                'adress' => $request->adress,
+            ]);
+
+            $data = DataDiri::find($dataDiri->id);
+
+            if ($data) {
+                return ApiFormater::createApi($data, 'Data Berhasil Disimpan', 200);
+            } else {
+                return ApiFormater::createApi(404, 'Data Tidak Ditemukan', null);
+            }
+        } catch (Exception $e) {
+            return ApiFormater::createApi($e->getMessage(), 'Gagal Menyimpan Data', 500);
+        }
     }
 
     /**
@@ -88,6 +142,24 @@ class DataDiriController extends Controller
      */
     public function destroy($id)
     {
-        //
+        $data = DataDiri::find($id);
+
+        if ($data) {
+            $data->delete();
+            return ApiFormater::createApi($data, 'Data Berhasil Dihapus', 200);
+        } else {
+            return ApiFormater::createApi(404, 'Data Tidak Ditemukan', null);
+        }
+    }
+
+    public function restore($id)
+    {
+        $data = DataDiri::withTrashed()->where('id', $id)->restore();
+
+        if ($data) {
+            return ApiFormater::createApi($data, 'Data Berhasil Dikembalikan', 200);
+        } else {
+            return ApiFormater::createApi(404, 'Data Tidak Ditemukan', null);
+        }
     }
 }
